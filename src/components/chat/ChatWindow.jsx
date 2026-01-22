@@ -116,7 +116,11 @@ export default function ChatWindow({ conversationId }) {
                   placeholder="Type message..."
                   className="border border-[#E2E2E2] rounded-lg h-12 px-4"
                 />
-                <Button type="submit" className="h-12" disabled={sendMessage.isPending}>
+                <Button
+                  type="submit"
+                  className="h-12"
+                  disabled={sendMessage.isPending}
+                >
                   Send
                 </Button>
               </form>
