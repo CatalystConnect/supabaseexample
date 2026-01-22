@@ -3,9 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request) {
   let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+    request: { headers: request.headers },
   });
 
   const supabase = createServerClient(
@@ -26,17 +24,18 @@ export async function middleware(request) {
   );
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const pathname = request.nextUrl.pathname;
 
-  // ✅ Logged-in user should not see login page
-  if (session && pathname === "/") {
+  // logged in user should not see login
+  if (user && pathname === "/") {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // ✅ Not logged-in user should not access dashboard
-  if (!session && pathname.startsWith("/dashboard")) {
+  // not logged in user should not access dashboard
+  if (!user && pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
