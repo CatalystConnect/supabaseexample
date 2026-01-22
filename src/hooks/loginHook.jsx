@@ -16,3 +16,18 @@ export const useLogin = () => {
     },
   });
 };
+
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: async ({ email }) => {
+      const supabase = supabaseBrowser();
+
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+};

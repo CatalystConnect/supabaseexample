@@ -15,7 +15,6 @@ export default function HomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-
   const form = useForm({
     defaultValues: {
       email: "",
@@ -25,17 +24,16 @@ export default function HomePage() {
   const loginMutation = useLogin();
   const loginWithGoogle = async () => {
     const supabase = supabaseBrowser();
-  
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${location.origin}/auth/callback`,
       },
     });
-  
+
     if (error) errorMessage({ description: error.message });
   };
-  
 
   const onSubmit = (values) => {
     loginMutation.mutate(values, {
@@ -77,7 +75,12 @@ export default function HomePage() {
               placeholder="Enter your password"
               className="border border-[#E2E2E2] rounded-lg h-12 px-4"
             />
-
+            <div
+              className="flex justify-end cursor-pointer hover:text-[#0033FF]"
+              onClick={() => router.push('/forgotPassword')}
+            >
+              Forgot Password?
+            </div>
             <Button
               type="submit"
               className="w-full cursor-pointer"

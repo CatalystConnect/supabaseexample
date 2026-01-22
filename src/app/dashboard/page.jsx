@@ -115,7 +115,15 @@ export default function Dashboard() {
             <CardHeader className="pb-3">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <CardTitle className="text-xl">Countries</CardTitle>
+                  <CardTitle className="text-xl">
+                    Countries{" "}
+                    <Button
+                      onClick={() => router.replace("/dashboard/chat")}
+                      className="ml-4 cursor-pointer"
+                    >
+                      Chat
+                    </Button>
+                  </CardTitle>
                   <CardDescription>
                     Manage all countries (add, edit, delete).
                   </CardDescription>
