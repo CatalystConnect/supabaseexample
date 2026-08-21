@@ -1,16 +1,36 @@
 import { supabaseBrowser } from "@/lib/supabase/browser";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
-export const useCountryData = () => {
+export const useCountryData = ({
+  page = 1,
+  pageSize = 10,
+  sortBy = "id",
+  sortOrder = "asc",
+} = {}) => {
   return useQuery({
-    queryKey: ["countries"],
+    // The extra params stay under the "countries" prefix so the mutations
+    // below still invalidate every page with a single key.
+    queryKey: ["countries", { page, pageSize, sortBy, sortOrder }],
+    // Keep the previous page on screen while the next one loads.
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const supabase = supabaseBrowser();
 
-      const { data, error } = await supabase.from("countries").select("*");
+      const from = (page - 1) * pageSize;
+
+      const { data, error, count } = await supabase
+        .from("countries")
+        .select("*", { count: "exact" })
+        .order(sortBy, { ascending: sortOrder === "asc" })
+        .range(from, from + pageSize - 1);
 
       if (error) throw error;
-      return data;
+      return { rows: data ?? [], total: count ?? 0 };
     },
   });
 };

@@ -31,10 +31,15 @@ export function TableList({
 }) {
   const [sorting, setSorting] = useState([]);
 
+  // When the caller sorts on the server, `data` is already the correct page in
+  // the correct order — re-sorting it here would only shuffle that one page.
+  const manualSorting = !!onSortChange;
+
   const table = useReactTable({
     data,
     columns,
     state: { sorting },
+    manualSorting,
     onSortingChange: (updater) => {
       const newSorting =
         typeof updater === "function" ? updater(sorting) : updater;
@@ -46,10 +51,14 @@ export function TableList({
           sort_by: newSorting[0].id,
           sort_order: newSorting[0].desc ? "desc" : "asc",
         });
+      } else {
+        // Sorting was toggled off; fall back to a stable default so the server
+        // isn't left applying the previous sort.
+        onSortChange?.({ sort_by: "id", sort_order: "asc" });
       }
     },
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    ...(manualSorting ? {} : { getSortedRowModel: getSortedRowModel() }),
   });
 
   return (

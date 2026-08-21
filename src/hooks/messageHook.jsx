@@ -1,6 +1,12 @@
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+// A message you send is written to the cache twice: once here on mutation
+// success and again when the realtime INSERT event echoes it back. Dedupe by
+// id so it only shows up once.
+export const appendMessage = (old = [], message) =>
+  old.some((m) => m.id === message.id) ? old : [...old, message];
+
 export const useSendMessage = () => {
   const queryClient = useQueryClient();
 
@@ -28,9 +34,8 @@ export const useSendMessage = () => {
     },
 
     onSuccess: (newMsg) => {
-      queryClient.setQueryData(
-        ["messages", newMsg.conversation_id],
-        (old = []) => [...old, newMsg]
+      queryClient.setQueryData(["messages", newMsg.conversation_id], (old) =>
+        appendMessage(old, newMsg)
       );
 
       queryClient.invalidateQueries({ queryKey: ["conversation_list"] });
@@ -89,5 +94,17 @@ export const useConversationList = () =>
 
       if (error) throw error;
       return data ?? [];
+    },
+  });
+
+export const useCurrentUser = () =>
+  useQuery({
+    queryKey: ["current_user"],
+    queryFn: async () => {
+      const supabase = supabaseBrowser();
+      const { data, error } = await supabase.auth.getUser();
+
+      if (error) throw error;
+      return data?.user ?? null;
     },
   });

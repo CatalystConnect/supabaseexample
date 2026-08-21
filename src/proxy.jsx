@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-export async function middleware(request) {
-  let response = NextResponse.next({
+export async function proxy(request) {
+  const response = NextResponse.next({
     request: { headers: request.headers },
   });
 
@@ -16,6 +16,7 @@ export async function middleware(request) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value);
             response.cookies.set(name, value, options);
           });
         },
@@ -23,20 +24,29 @@ export async function middleware(request) {
     }
   );
 
+  // getUser() may refresh an expired session, which writes new auth cookies
+  // onto `response`. A plain NextResponse.redirect() would drop them, so any
+  // redirect has to copy them over or the refreshed session is lost.
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const redirectTo = (path) => {
+    const redirect = NextResponse.redirect(new URL(path, request.url));
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
+  };
 
   const pathname = request.nextUrl.pathname;
 
   // logged in user should not see login
   if (user && pathname === "/") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return redirectTo("/dashboard");
   }
 
   // not logged in user should not access dashboard
   if (!user && pathname.startsWith("/dashboard")) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return redirectTo("/");
   }
 
   return response;

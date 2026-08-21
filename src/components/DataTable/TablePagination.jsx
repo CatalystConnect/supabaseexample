@@ -42,14 +42,16 @@ export const TablePagination = ({ totalRecord, page, setPage, length }) => {
       item === "dots" ? (
         // Render dots for skipped pages
         <PaginationItem key={`dots-${index}`}>
-          <span className="px-2 text-gray-500">...</span>
+          <span className="px-2 text-muted-foreground">...</span>
         </PaginationItem>
       ) : (
         // Render page number buttons
         <PaginationItem key={item}>
           <PaginationLink
-            className={`!rounded-[52px] bg-[#dedede] text-black ${
-              item === page ? "bg-red text-white hover:!text-[#0033FF] hover:!bg-gray-50" : ""
+            className={`!rounded-full ${
+              item === page
+                ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                : "bg-muted text-foreground hover:bg-accent"
             }`}
             isActive={item === page}
             onClick={() => setPage(item)} // Set the page when clicked
@@ -68,10 +70,9 @@ export const TablePagination = ({ totalRecord, page, setPage, length }) => {
         <PaginationItem>
           <PaginationPrevious
             onClick={page > 1 ? () => setPage(page - 1) : undefined}
-            className={`!rounded-[52px] bg-[#0033FF] text-white  border-gray-300 ${
-              page === 1
-                ? "pointer-events-none opacity-50 cursor-not-allowed hover:!text-[#0033FF]"
-                : " hover:!text-[#0033FF]"
+            aria-disabled={page === 1}
+            className={`!rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground ${
+              page === 1 ? "pointer-events-none opacity-50" : ""
             }`}
           />
         </PaginationItem>
@@ -83,10 +84,9 @@ export const TablePagination = ({ totalRecord, page, setPage, length }) => {
         <PaginationItem>
           <PaginationNext
             onClick={page < totalPages ? () => setPage(page + 1) : undefined}
-            className={`!rounded-[52px] bg-[#0033FF] text-white  border-gray-300 ${
-              page === totalPages
-                ? "pointer-events-none opacity-50 cursor-not-allowed hover:!text-[#0033FF]"
-                : "hover:!text-[#0033FF]"
+            aria-disabled={page === totalPages}
+            className={`!rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground ${
+              page === totalPages ? "pointer-events-none opacity-50" : ""
             }`}
           />
         </PaginationItem>

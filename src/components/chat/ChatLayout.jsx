@@ -33,10 +33,10 @@ export default function ChatLayout() {
   }, [queryClient]);
 
   return (
-    <div className="h-[calc(100vh-20px)] p-3">
-      <div className="grid grid-cols-12 gap-3 h-full">
+    <div className="h-full">
+      <div className="grid h-full grid-cols-1 gap-3 md:grid-cols-12">
         {/* Sidebar */}
-        <div className="col-span-4 h-full">
+        <div className="h-full min-h-0 md:col-span-4">
           <ChatSidebar
             activeConversationId={activeConversationId}
             onOpenConversation={(id) => setActiveConversationId(id)}
@@ -44,7 +44,7 @@ export default function ChatLayout() {
         </div>
 
         {/* Chat Window */}
-        <div className="col-span-8 h-full">
+        <div className="h-full min-h-0 md:col-span-8">
           <ChatWindow conversationId={activeConversationId} />
         </div>
       </div>

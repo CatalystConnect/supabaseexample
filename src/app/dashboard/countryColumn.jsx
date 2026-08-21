@@ -1,6 +1,7 @@
 "use client";
 
 import { SquarePen, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const countryColumn = (handleEditCountry, handleDeleteCountry) => [
   {
@@ -32,23 +33,32 @@ export const countryColumn = (handleEditCountry, handleDeleteCountry) => [
         : "-",
   },
   {
-    accessorKey: "action",
-    header: "Created At",
-    cell: ({ row }) => {
-      return (
-        <>
-          <div className="flex gap-2 items-center">
-            <SquarePen
-              onClick={() => handleEditCountry(row?.original)}
-              className="text-green-500 cursor-pointer"
-            />
-            <Trash2
-              onClick={() => handleDeleteCountry(row?.original)}
-              className="text-red-500 cursor-pointer"
-            />
-          </div>
-        </>
-      );
-    },
+    id: "action",
+    header: () => <div className="text-right">Actions</div>,
+    enableSorting: false,
+    cell: ({ row }) => (
+      <div className="flex justify-end gap-1">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={`Edit ${row.original.name ?? "country"}`}
+          onClick={() => handleEditCountry(row?.original)}
+          className="cursor-pointer text-emerald-600 hover:text-emerald-600"
+        >
+          <SquarePen />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={`Delete ${row.original.name ?? "country"}`}
+          onClick={() => handleDeleteCountry(row?.original)}
+          className="cursor-pointer text-destructive hover:text-destructive"
+        >
+          <Trash2 />
+        </Button>
+      </div>
+    ),
   },
 ];

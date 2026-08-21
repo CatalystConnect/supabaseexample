@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { useQueryClient } from "@tanstack/react-query";
-import { useMessages, useSendMessage } from "@/hooks/messageHook";
+import {
+  appendMessage,
+  useCurrentUser,
+  useMessages,
+  useSendMessage,
+} from "@/hooks/messageHook";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
@@ -14,7 +19,9 @@ import { Button } from "@/components/ui/button";
 export default function ChatWindow({ conversationId }) {
   const queryClient = useQueryClient();
   const { data: messages = [] } = useMessages(conversationId);
+  const { data: me } = useCurrentUser();
   const sendMessage = useSendMessage();
+  const bottomRef = useRef(null);
 
   const form = useForm({
     defaultValues: { text: "" },
@@ -60,10 +67,9 @@ export default function ChatWindow({ conversationId }) {
         (payload) => {
           const newMsg = payload.new;
 
-          queryClient.setQueryData(["messages", conversationId], (old = []) => [
-            ...old,
-            newMsg,
-          ]);
+          queryClient.setQueryData(["messages", conversationId], (old) =>
+            appendMessage(old, newMsg)
+          );
 
           queryClient.invalidateQueries({ queryKey: ["conversation_list"] });
         }
@@ -75,13 +81,18 @@ export default function ChatWindow({ conversationId }) {
     };
   }, [conversationId, queryClient]);
 
+  // ✅ keep the newest message in view
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "end" });
+  }, [messages.length, conversationId]);
+
   const onSubmit = async (values) => {
     if (!values.text?.trim()) return;
     if (!conversationId) return;
 
     await sendMessage.mutateAsync({
       conversationId,
-      text: values.text,
+      text: values.text.trim(),
     });
 
     form.reset({ text: "" });
@@ -89,39 +100,70 @@ export default function ChatWindow({ conversationId }) {
 
   return (
     <Card className="h-full rounded-2xl">
-      <CardContent className="p-4 h-full flex flex-col">
+      <CardContent className="flex h-full min-h-0 flex-col p-4">
         {!conversationId ? (
-          <div className="h-full flex items-center justify-center text-sm opacity-60">
+          <div className="flex h-full items-center justify-center text-sm opacity-60">
             Select a contact or chat
           </div>
         ) : (
           <>
-            <div className="flex-1 overflow-auto space-y-2 pr-2 mb-4">
-              {messages.map((m) => (
-                <div key={m.id} className="border rounded-xl p-3">
-                  <p className="text-sm">{m.text}</p>
-                  <p className="text-xs opacity-60 mt-1">{m.created_at}</p>
+            <div className="mb-4 min-h-0 flex-1 space-y-2 overflow-y-auto pr-2">
+              {messages.length === 0 ? (
+                <div className="flex h-full items-center justify-center text-sm opacity-60">
+                  No messages yet. Say hello.
                 </div>
-              ))}
+              ) : (
+                messages.map((m) => {
+                  const isMine = me?.id && m.sender_id === me.id;
+
+                  return (
+                    <div
+                      key={m.id}
+                      className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-[75%] rounded-2xl px-3 py-2 ${
+                          isMine
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-foreground"
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap break-words">
+                          {m.text}
+                        </p>
+                        <p className="mt-1 text-[11px] opacity-70">
+                          {m.created_at
+                            ? new Date(m.created_at).toLocaleString()
+                            : ""}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+
+              <div ref={bottomRef} />
             </div>
 
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="flex gap-2"
+                className="flex shrink-0 items-start gap-2"
               >
-                <InputField
-                  form={form}
-                  name="text"
-                  placeholder="Type message..."
-                  className="border border-[#E2E2E2] rounded-lg h-12 px-4"
-                />
+                <div className="flex-1">
+                  <InputField
+                    form={form}
+                    name="text"
+                    placeholder="Type message..."
+                    className="h-12"
+                  />
+                </div>
                 <Button
                   type="submit"
-                  className="h-12"
+                  className="h-12 cursor-pointer"
                   disabled={sendMessage.isPending}
                 >
-                  Send
+                  {sendMessage.isPending ? "Sending..." : "Send"}
                 </Button>
               </form>
             </Form>

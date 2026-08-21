@@ -1,13 +1,15 @@
 import React, { useEffect } from "react";
 import { Form } from "../ui/form";
 import { useForm } from "react-hook-form";
-import CountryField from "./CountryField";
+import { zodResolver } from "@hookform/resolvers/zod";
+import CountryField, { countrySchema } from "./CountryField";
 import { Button } from "../ui/button";
 import { errorMessage, successMessage } from "../ToasterMessage";
 import { useCountryDataById, useUpdateCountryData } from "@/hooks/dataHook";
 
 const EditCountry = ({ editId, setEditId, setAddFormOpen }) => {
   const form = useForm({
+    resolver: zodResolver(countrySchema),
     defaultValues: {
       name: "",
       cuntry_code: "",
@@ -22,7 +24,7 @@ const EditCountry = ({ editId, setEditId, setAddFormOpen }) => {
     if (country) {
       form.reset({
         name: country.name ?? "",
-        cuntry_code: country.cuntry_code ?? "",
+        cuntry_code: String(country.cuntry_code ?? ""),
         country_region: country.country_region ?? "",
       });
     }
@@ -38,18 +40,16 @@ const EditCountry = ({ editId, setEditId, setAddFormOpen }) => {
       });
 
       successMessage({ description: "Country updated successfully" });
+      setAddFormOpen(false);
+      setEditId(null);
     } catch (err) {
       errorMessage({ description: err?.message || "Failed to update country" });
-    } finally {
-      setAddFormOpen(false);
-      setEditId("");
     }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <h2 className="font-semibold mb-4">Update Country</h2>
 
         {isLoading ? <p>Loading...</p> : <CountryField form={form} />}
 

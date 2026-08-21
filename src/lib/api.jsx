@@ -1,5 +1,4 @@
 import axios from "axios";
-import { supabase } from "@/lib/supabaseClient";
 import { supabaseBrowser } from "./supabase/browser";
 
 export const baseURL = process.env.NEXT_PUBLIC_API_URL;
@@ -37,7 +36,7 @@ api.interceptors.response.use(
       isLoggingOut = true;
 
       console.warn("401 -> Supabase signOut");
-      await supabase.auth.signOut();
+      await supabaseBrowser().auth.signOut();
 
       // unlock
       setTimeout(() => {

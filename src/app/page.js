@@ -13,7 +13,6 @@ import { useForm } from "react-hook-form";
 
 export default function HomePage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const form = useForm({
     defaultValues: {
@@ -23,6 +22,8 @@ export default function HomePage() {
   });
   const loginMutation = useLogin();
   const loginWithGoogle = async () => {
+    setGoogleLoading(true);
+
     const supabase = supabaseBrowser();
 
     const { error } = await supabase.auth.signInWithOAuth({
@@ -32,15 +33,19 @@ export default function HomePage() {
       },
     });
 
-    if (error) errorMessage({ description: error.message });
+    if (error) {
+      errorMessage({ description: error.message });
+      setGoogleLoading(false);
+    }
   };
 
   const onSubmit = (values) => {
     loginMutation.mutate(values, {
-      onSuccess: () => router.push("/dashboard"),
+      onSuccess: () => {
+        router.push("/dashboard");
+        router.refresh();
+      },
       onError: (err) => {
-        console.log("errerrerrerrerrerr", err);
-
         const msg =
           err?.message ||
           err?.error_description ||
@@ -53,7 +58,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-xl border bg-white p-6 shadow-sm">
+      <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-sm">
         <h1 className="text-xl font-semibold mb-1">Login</h1>
         <p className="text-sm text-muted-foreground mb-6">
           Sign in to continue
@@ -65,7 +70,7 @@ export default function HomePage() {
               form={form}
               name="email"
               placeholder="Enter your Email"
-              className="border border-[#E2E2E2] rounded-lg h-12 px-4"
+              className="h-12"
             />
 
             <HideValueInput
@@ -73,10 +78,10 @@ export default function HomePage() {
               form={form}
               inputType="password"
               placeholder="Enter your password"
-              className="border border-[#E2E2E2] rounded-lg h-12 px-4"
+              className="h-12"
             />
             <div
-              className="flex justify-end cursor-pointer hover:text-[#0033FF]"
+              className="flex justify-end cursor-pointer hover:text-primary"
               onClick={() => router.push('/forgotPassword')}
             >
               Forgot Password?
@@ -84,17 +89,17 @@ export default function HomePage() {
             <Button
               type="submit"
               className="w-full cursor-pointer"
-              disabled={loading}
+              disabled={loginMutation.isPending}
             >
-              {loading ? "Logging in..." : "Log in"}
+              {loginMutation.isPending ? "Logging in..." : "Log in"}
             </Button>
           </form>
         </Form>
 
         <div className="my-4 flex items-center gap-3">
-          <div className="h-px flex-1 bg-gray-200" />
-          <span className="text-xs text-gray-500">OR</span>
-          <div className="h-px flex-1 bg-gray-200" />
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">OR</span>
+          <div className="h-px flex-1 bg-border" />
         </div>
 
         <Button

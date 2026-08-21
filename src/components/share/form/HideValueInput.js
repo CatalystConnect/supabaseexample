@@ -45,7 +45,7 @@ const HideValueInput = ({
       name={name}
       render={({ field, fieldState }) => (
         <FormItem className="relative">
-          {label && <FormLabel className="!text-[#101828]">{label}</FormLabel>}
+          {label && <FormLabel>{label}</FormLabel>}
           <FormControl>
             <div className="relative">
               <Input
@@ -55,9 +55,9 @@ const HideValueInput = ({
                 value={value ?? field.value ?? ""}
                 readOnly={readOnly}
                 defaultValue={defaultValue}
-                className={`form-control-height${className} ${
-                  fieldState.error ? "!border-red-500" : ""
-                }`}
+                className={`${className ?? ""} ${
+                  inputType === "password" ? "pr-10" : ""
+                } ${fieldState.error ? "!border-destructive" : ""}`}
                 placeholder={placeholder}
                 type={getInputType()}
                 min={0}
@@ -69,14 +69,15 @@ const HideValueInput = ({
               {inputType === "password" && (
                 <button
                   type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={togglePasswordVisibility}
-                  className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+                  className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground cursor-pointer"
                   tabIndex={-1}
                 >
                   {showPassword ? (
-                    <Eye className="h-5 w-5" />
-                  ) : (
                     <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
                   )}
                 </button>
               )}

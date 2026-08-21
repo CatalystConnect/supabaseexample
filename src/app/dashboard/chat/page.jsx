@@ -34,17 +34,20 @@ export default function Page() {
     loadUser();
   }, [router]);
   return (
-    <>
-      <Card className="rounded-2xl shadow-sm">
+    <div className="flex h-screen flex-col gap-3 p-3">
+      <Card className="rounded-2xl shadow-sm shrink-0">
         <CardHeader className="pb-4">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <CardTitle className="text-2xl">
-                Dashboard
-                <Button onClick={() => router.replace("/dashboard")} className='ml-4 cursor-pointer'>
+              <div className="flex items-center gap-4">
+                <CardTitle className="text-2xl">Chat</CardTitle>
+                <Button
+                  onClick={() => router.push("/dashboard")}
+                  className="cursor-pointer"
+                >
                   Country
                 </Button>
-              </CardTitle>
+              </div>
               <CardDescription className="mt-1">
                 Signed in as{" "}
                 <span className="font-medium text-foreground">
@@ -63,7 +66,10 @@ export default function Page() {
           </div>
         </CardHeader>
       </Card>
-      <ChatLayout />
-    </>
+
+      <div className="min-h-0 flex-1">
+        <ChatLayout />
+      </div>
+    </div>
   );
 }

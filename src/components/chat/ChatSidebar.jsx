@@ -16,7 +16,6 @@ export default function ChatSidebar({
   onOpenConversation,
 }) {
   const { data: users = [], isLoading: usersLoading } = useUsers();
-  console.log("usersusersusersusersusers",users)
   const { data: chats = [], isLoading: chatsLoading } = useConversationList();
 
   const createOrGetConversation = useCreateOrGetConversation();
@@ -37,6 +36,8 @@ export default function ChatSidebar({
 
           {usersLoading ? (
             <p className="text-sm opacity-60">Loading contacts...</p>
+          ) : users.length === 0 ? (
+            <p className="text-sm opacity-60">No other users yet.</p>
           ) : (
             <ScrollArea className="h-[220px] pr-2">
               <div className="space-y-2">
@@ -44,7 +45,7 @@ export default function ChatSidebar({
                   <button
                     key={u.id}
                     onClick={() => startChat(u.id)}
-                    className="w-full flex items-center gap-3 border rounded-xl p-2 hover:bg-muted transition"
+                    className="flex w-full cursor-pointer items-center gap-3 rounded-xl border p-2 transition hover:bg-muted"
                   >
                     <Avatar className="h-9 w-9">
                       <AvatarImage src={u.avatar_url || ""} />
@@ -53,11 +54,10 @@ export default function ChatSidebar({
                       </AvatarFallback>
                     </Avatar>
 
-                    <div className="text-left">
-                      <div className="text-sm font-medium">
+                    <div className="min-w-0 text-left">
+                      <div className="truncate text-sm font-medium">
                         {u.full_name || "User"}
                       </div>
-                      <div className="text-xs opacity-60">{u.id}</div>
                     </div>
                   </button>
                 ))}
@@ -67,15 +67,15 @@ export default function ChatSidebar({
         </div>
 
         {/* CHATS */}
-        <div className="flex-1">
-          <h2 className="text-lg font-semibold mb-2">Chats</h2>
+        <div className="flex min-h-0 flex-1 flex-col">
+          <h2 className="mb-2 shrink-0 text-lg font-semibold">Chats</h2>
 
           {chatsLoading ? (
             <p className="text-sm opacity-60">Loading chats...</p>
           ) : chats.length === 0 ? (
             <p className="text-sm opacity-60">No chats yet.</p>
           ) : (
-            <ScrollArea className="h-full pr-2">
+            <ScrollArea className="min-h-0 flex-1 pr-2">
               <div className="space-y-2">
                 {chats.map((c) => {
                   const isActive = activeConversationId === c.conversation_id;
@@ -84,8 +84,8 @@ export default function ChatSidebar({
                     <button
                       key={c.conversation_id}
                       onClick={() => onOpenConversation(c.conversation_id)}
-                      className={`w-full flex items-center gap-3 border rounded-xl p-3 hover:bg-muted transition ${
-                        isActive ? "bg-muted border-primary" : ""
+                      className={`flex w-full cursor-pointer items-center gap-3 rounded-xl border p-3 transition hover:bg-muted ${
+                        isActive ? "border-primary bg-muted" : ""
                       }`}
                     >
                       <Avatar className="h-10 w-10">
@@ -95,8 +95,8 @@ export default function ChatSidebar({
                         </AvatarFallback>
                       </Avatar>
 
-                      <div className="flex-1 text-left">
-                        <div className="text-sm font-medium">
+                      <div className="min-w-0 flex-1 text-left">
+                        <div className="truncate text-sm font-medium">
                           {c.other_full_name || "User"}
                         </div>
                         <div className="text-xs opacity-60 line-clamp-1">

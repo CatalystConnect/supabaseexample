@@ -1,8 +1,9 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
-export function supabaseServer() {
-  const cookieStore = cookies();
+export async function supabaseServer() {
+  // cookies() is async as of Next.js 15 — awaiting it is required.
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -17,7 +18,10 @@ export function supabaseServer() {
             cookiesToSet.forEach(({ name, value, options }) => {
               cookieStore.set(name, value, options);
             });
-          } catch {}
+          } catch {
+            // Called from a Server Component, where cookies are read-only.
+            // The proxy refreshes the session, so this can be safely ignored.
+          }
         },
       },
     }

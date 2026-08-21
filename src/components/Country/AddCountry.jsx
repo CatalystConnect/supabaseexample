@@ -1,13 +1,15 @@
 import React from "react";
 import { Form } from "../ui/form";
 import { useForm } from "react-hook-form";
-import CountryField from "./CountryField";
+import { zodResolver } from "@hookform/resolvers/zod";
+import CountryField, { countrySchema } from "./CountryField";
 import { Button } from "../ui/button";
 import { errorMessage, successMessage } from "../ToasterMessage";
 import { useUploadCountryData } from "@/hooks/dataHook";
 
 const AddCountry = ({ setAddFormOpen }) => {
   const form = useForm({
+    resolver: zodResolver(countrySchema),
     defaultValues: {
       name: "",
       cuntry_code: "",
@@ -27,17 +29,15 @@ const AddCountry = ({ setAddFormOpen }) => {
 
       successMessage({ description: "Country added successfully" });
       form.reset();
+      setAddFormOpen(false);
     } catch (err) {
       errorMessage({ description: err?.message || "Failed to add country" });
-    } finally {
-      setAddFormOpen(false);
     }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <h2 className="font-semibold mb-4">New Country</h2>
 
         <CountryField form={form} />
 

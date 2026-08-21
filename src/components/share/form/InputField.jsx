@@ -24,17 +24,17 @@ const InputField = ({
         name={name}
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel className='!text-[#101828]'>{label}</FormLabel>
+            {label && <FormLabel>{label}</FormLabel>}
             <FormControl>
               <Input
-                value={field.value}
                 id={field.name}
                 {...field}
+                value={field.value ?? ""}
                 placeholder={placeholder}
                 disabled={disabled}
                 type={type}
-                className={`form-control-height${className} ${
-                  fieldState.error ? "!border-red-500" : ""
+                className={`${className ?? ""} ${
+                  fieldState.error ? "!border-destructive" : ""
                 }`}
               />
             </FormControl>

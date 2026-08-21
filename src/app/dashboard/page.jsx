@@ -7,7 +7,13 @@ import { supabaseBrowser } from "@/lib/supabase/browser";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { countryColumn } from "./countryColumn";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import AddCountry from "@/components/Country/AddCountry";
 import EditCountry from "@/components/Country/EditCountry";
 import DeleteDialogBox from "@/components/Modal/Delete";
@@ -22,6 +28,8 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
+const PAGE_SIZE = 10;
+
 export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -29,8 +37,19 @@ export default function Dashboard() {
   const [editId, setEditId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [deleteOpenModal, setDeleteOpenModal] = useState(false);
+  const [page, setPage] = useState(1);
+  const [sort, setSort] = useState({ sort_by: "id", sort_order: "asc" });
 
-  const { data: countries, isLoading } = useCountryData();
+  const { data, isLoading } = useCountryData({
+    page,
+    pageSize: PAGE_SIZE,
+    sortBy: sort.sort_by,
+    sortOrder: sort.sort_order,
+  });
+
+  const countries = data?.rows ?? [];
+  const totalRecord = data?.total ?? 0;
+
   const deleteCountryMutation = useDeleteCountryById();
 
   useEffect(() => {
@@ -54,6 +73,10 @@ export default function Dashboard() {
       if (!deleteId) return;
 
       await deleteCountryMutation.mutateAsync(deleteId);
+
+      // Removing the only row on this page would strand the user on an empty
+      // page, so step back to the previous one.
+      if (countries.length === 1 && page > 1) setPage(page - 1);
 
       successMessage({ description: "Country deleted successfully" });
       setDeleteOpenModal(false);
@@ -115,15 +138,15 @@ export default function Dashboard() {
             <CardHeader className="pb-3">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <CardTitle className="text-xl">
-                    Countries{" "}
+                  <div className="flex items-center gap-4">
+                    <CardTitle className="text-xl">Countries</CardTitle>
                     <Button
-                      onClick={() => router.replace("/dashboard/chat")}
-                      className="ml-4 cursor-pointer"
+                      onClick={() => router.push("/dashboard/chat")}
+                      className="cursor-pointer"
                     >
                       Chat
                     </Button>
-                  </CardTitle>
+                  </div>
                   <CardDescription>
                     Manage all countries (add, edit, delete).
                   </CardDescription>
@@ -145,9 +168,17 @@ export default function Dashboard() {
 
             <CardContent className="pt-6">
               <TableList
-                data={countries || []}
+                data={countries}
                 columns={countryColumn(handleEditCountry, handleDeleteCountry)}
                 loading={isLoading}
+                totalRecord={totalRecord}
+                page={page}
+                setPage={setPage}
+                length={PAGE_SIZE}
+                onSortChange={(next) => {
+                  setSort(next);
+                  setPage(1);
+                }}
               />
             </CardContent>
           </Card>
@@ -160,17 +191,22 @@ export default function Dashboard() {
             setAddFormOpen(isOpen);
             if (!isOpen) setEditId(null);
           }}
-          modal={false}
         >
-          {addFormOpen && (
-            <div className="fixed inset-0 bg-black/30 z-40 transition-opacity"></div>
-          )}
-
           <DialogContent
             onInteractOutside={(e) => e.preventDefault()}
-            className="relative !max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 z-50 mx-auto my-auto dialog-test hide-scrollbar"
-            style={{ position: "absolute" }}
+            className="!max-w-2xl w-full max-h-[85vh] overflow-y-auto"
           >
+            <DialogHeader>
+              <DialogTitle>
+                {editId ? "Update Country" : "New Country"}
+              </DialogTitle>
+              <DialogDescription>
+                {editId
+                  ? "Change the details for this country."
+                  : "Add a new country to the list."}
+              </DialogDescription>
+            </DialogHeader>
+
             {editId ? (
               <EditCountry
                 editId={editId}
@@ -188,7 +224,10 @@ export default function Dashboard() {
           onDelete={onDelete}
           description="Are you sure you want to delete this country?"
           deleteOpenModal={deleteOpenModal}
-          deleteHandleModalClose={() => setDeleteOpenModal(false)}
+          deleteHandleModalClose={() => {
+            setDeleteOpenModal(false);
+            setDeleteId(null);
+          }}
           deleteLoading={deleteCountryMutation.isPending}
         />
       </div>

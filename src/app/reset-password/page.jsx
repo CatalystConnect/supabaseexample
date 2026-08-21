@@ -1,6 +1,7 @@
 "use client";
 
 import { supabaseBrowser } from "@/lib/supabase/browser";
+import { errorMessage, successMessage } from "@/components/ToasterMessage";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -9,27 +10,49 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
+  const [linkError, setLinkError] = useState("");
 
   useEffect(() => {
-    const run = async () => {
-      const supabase = supabaseBrowser();
+    const supabase = supabaseBrowser();
+    let active = true;
 
-      // IMPORTANT: exchange URL code for session
-      const { data, error } = await supabase.auth.exchangeCodeForSession(
-        window.location.href
-      );
-      console.log("datadatadatadata", data);
-      console.log("errorerrorerrorerror", error);
-      if (error) {
-        alert(error.message || "Invalid or expired reset link");
+    const run = async () => {
+      // The browser client auto-exchanges the ?code= param on load, so look for
+      // an existing session first and only exchange manually if it hasn't.
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        if (active) setReady(true);
         return;
       }
 
-      // session is now set in supabase client
+      // exchangeCodeForSession takes the auth code itself, not the full URL.
+      const code = new URLSearchParams(window.location.search).get("code");
+
+      if (!code) {
+        if (active) setLinkError("Invalid or expired reset link");
+        return;
+      }
+
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (!active) return;
+
+      if (error) {
+        setLinkError(error.message || "Invalid or expired reset link");
+        return;
+      }
+
       setReady(true);
     };
 
     run();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const updatePassword = async () => {
@@ -41,10 +64,10 @@ export default function ResetPasswordPage() {
 
       if (error) throw error;
 
-      alert("Password updated successfully");
+      successMessage({ description: "Password updated successfully" });
       router.push("/");
     } catch (e) {
-      alert(e.message || "Something went wrong");
+      errorMessage({ description: e?.message || "Something went wrong" });
     } finally {
       setLoading(false);
     }
@@ -54,7 +77,17 @@ export default function ResetPasswordPage() {
     <div className="max-w-md mx-auto mt-10 space-y-4">
       <h1 className="text-xl font-semibold">Reset Password</h1>
 
-      {!ready ? (
+      {linkError ? (
+        <div className="space-y-4">
+          <p className="text-sm text-red-500">{linkError}</p>
+          <button
+            onClick={() => router.push("/forgotPassword")}
+            className="w-full h-12 rounded-lg bg-black text-white cursor-pointer"
+          >
+            Request a new link
+          </button>
+        </div>
+      ) : !ready ? (
         <p>Validating reset link...</p>
       ) : (
         <>
@@ -69,7 +102,7 @@ export default function ResetPasswordPage() {
           <button
             onClick={updatePassword}
             disabled={loading || !password}
-            className="w-full h-12 rounded-lg bg-black text-white"
+            className="w-full h-12 rounded-lg bg-black text-white disabled:opacity-50"
           >
             {loading ? "Updating..." : "Update Password"}
           </button>

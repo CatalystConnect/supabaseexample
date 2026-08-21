@@ -34,7 +34,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-xl border bg-white p-6 shadow-sm">
+      <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-sm">
         <h1 className="text-xl font-semibold mb-1">Forgot password</h1>
         <p className="text-sm text-muted-foreground mb-6">
           Enter your email to receive a reset link
@@ -46,7 +46,7 @@ export default function ForgotPassword() {
               form={form}
               name="email"
               placeholder="Enter your Email"
-              className="border border-[#E2E2E2] rounded-lg h-12 px-4"
+              className="h-12"
             />
 
             <Button
